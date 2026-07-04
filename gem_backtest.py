@@ -68,6 +68,14 @@ def build_price_panel(start, end):
     cash_nav = (1 + cash_monthly_return).cumprod()
 
     series = {"US": us, "INTL": intl, "BOND": bond, "CASH": cash_nav}
+    empty = [SERIES_LABELS[name] for name, s in series.items() if s.empty]
+    if empty:
+        raise RuntimeError(
+            f"No price data returned for {empty}. This usually means yfinance "
+            "could not reach Yahoo Finance (network/proxy blocked) rather than "
+            "a problem with the strategy code."
+        )
+
     first_valid = {name: s.index.min() for name, s in series.items()}
     bottleneck = max(first_valid, key=first_valid.get)
 
