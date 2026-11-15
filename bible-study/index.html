@@ -352,7 +352,7 @@ const VERSIONS = ["NIV","ESV","KJV","NKJV","NLT","CSB","NASB"];
 /* ======================= STATE ======================= */
 const KEY = "ninetyDayStudy.v1";
 let S = load();
-function blank(){ return {v:1, entries:{}, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}, last:null}; }
+function blank(){ return {v:1, entries:{}, et:{}, mt:0, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}}; }
 function load(){
   try{ const raw = localStorage.getItem(KEY); if(raw){ const o = JSON.parse(raw); return Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); } }catch(e){}
   return blank();
@@ -362,7 +362,72 @@ function save(){
   try{ localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; }catch(e){ storageOK = false; }
 }
 const get = k => S.entries[k] || "";
-function set(k,v){ if(v) S.entries[k]=v; else delete S.entries[k]; save(); }
+function set(k,v){
+  if((S.entries[k]||"") === (v||"")) return;
+  if(v) S.entries[k]=v; else delete S.entries[k];
+  S.et[k] = Date.now(); save(); cloudPut("e_"+k, {v:v||"", t:S.et[k]});
+}
+function touchMeta(){ S.mt = Date.now(); save(); cloudPut("meta", metaBody()); }
+function metaBody(){ return {done:S.done, routine:S.routine, settings:S.settings, t:S.mt}; }
+
+/* ======================= PRIVATE CLOUD SYNC ======================= */
+/* Each viewer's entries live under data/users/<their id>/, which only they can read. */
+const cloud = { col:null, status:"local", queue:new Map(), busy:new Set() };
+function cloudPut(id, body){
+  if(!cloud.col) return;
+  cloud.queue.set(id, body);
+  if(!cloud.busy.has(id)) setTimeout(()=>flush(id), 800);
+}
+async function flush(id){
+  if(cloud.busy.has(id) || !cloud.queue.has(id)) return;
+  const body = cloud.queue.get(id); cloud.queue.delete(id); cloud.busy.add(id);
+  try{ await cloud.col.doc(id).set(body); }
+  catch(e){
+    if(e && e.code==="unavailable"){ cloud.queue.has(id) || cloud.queue.set(id, body); setTimeout(()=>flush(id), 1500+Math.random()*1500); }
+    else if(e && (e.code==="invalid_argument" || e.code==="revoked" || e.code==="not_granted")){ cloud.col=null; cloud.status="local"; }
+  }
+  finally{ cloud.busy.delete(id); if(cloud.queue.has(id)) setTimeout(()=>flush(id), 300); }
+}
+async function cloudInit(){
+  if(!window.claude || typeof window.claude.use!=="function") return;
+  try{
+    const [db, user] = await Promise.all([claude.use("db"), claude.use("user")]);
+    if(!db || !user) return;
+    const uid = await user.id(); if(!uid) return;
+    const col = db.collection("data/users/"+uid);
+    const snap = await Promise.race([col.limit(1000).get(), new Promise((_,r)=>setTimeout(()=>r({code:"timeout"}),10000))]);
+    cloud.col = col; cloud.status = "cloud";
+    let changed = false; const seen = new Set();
+    snap.docs.forEach(d=>{
+      const b = d.data(); if(!b) return; seen.add(d.id);
+      if(d.id==="meta"){
+        if((b.t||0) > (S.mt||0)){ S.done=b.done||{}; S.routine=b.routine||{}; S.settings=Object.assign(blank().settings, b.settings||{}); S.mt=b.t; changed=true; }
+        else if((S.mt||0) > (b.t||0)) cloudPut("meta", metaBody());
+      } else if(d.id.startsWith("e_")){
+        const k = d.id.slice(2), lt = S.et[k]||0;
+        if((b.t||0) > lt){ if(b.v) S.entries[k]=b.v; else delete S.entries[k]; S.et[k]=b.t; changed=true; }
+        else if(lt > (b.t||0)) cloudPut(d.id, {v:S.entries[k]||"", t:lt});
+      }
+    });
+    // Push anything written on this device that the account hasn't seen yet
+    Object.keys(S.entries).forEach(k=>{ if(!seen.has("e_"+k)){ S.et[k] = S.et[k] || Date.now(); cloudPut("e_"+k, {v:S.entries[k], t:S.et[k]}); }});
+    if(!seen.has("meta") && (Object.keys(S.done).length || Object.keys(S.routine).length)){ S.mt = S.mt || Date.now(); cloudPut("meta", metaBody()); }
+    save();
+    if(changed){ applyTheme(); if(!(document.activeElement && document.activeElement.tagName==="TEXTAREA")) route(); }
+    else if(location.hash.startsWith("#/settings")) route();
+  }catch(e){ /* stay device-only for this visit */ }
+}
+async function cloudWipe(){
+  if(!cloud.col) return;
+  cloud.queue.clear();
+  try{ const snap = await cloud.col.limit(1000).get(); for(const d of snap.docs){ try{ await cloud.col.doc(d.id).delete(); }catch(e){} } }catch(e){}
+}
+function cloudPushAll(){
+  if(!cloud.col) return;
+  const now = Date.now();
+  Object.keys(S.entries).forEach(k=>{ S.et[k]=now; cloudPut("e_"+k, {v:S.entries[k], t:now}); });
+  S.mt = now; cloudPut("meta", metaBody()); save();
+}
 
 /* ======================= HELPERS ======================= */
 const $ = s => document.querySelector(s);
@@ -488,7 +553,6 @@ function viewDay(m,d){
   const M = STUDY[m-1]; const [ref,prompt] = M.days[d-1]; const k = dayKey(m,d);
   const w = weekOf(d); const done = isDone(m,d);
   const r = S.routine[k] || [];
-  S.last = [m,d]; save();
   const prev = d>1 ? [m,d-1] : (m>1 ? [m-1,30] : null);
   const next = d<30 ? [m,d+1] : (m<3 ? [m+1,1] : null);
   return `<div style="--mc:${M.color}">
@@ -655,15 +719,17 @@ function viewSettings(){
   </div>
   <div class="card">
     <h3 style="margin-top:0">Your privacy</h3>
-    <p>Everything you write stays in this browser on this device. Nothing is sent anywhere. That also means clearing your browser data, or switching devices, will lose it — so back it up now and then.</p>
-    ${storageOK?"":`<p style="color:#b4483c"><strong>This browser is blocking storage</strong> (for example, a private window). Your writing will be lost when you close the page unless you export it.</p>`}
+    ${cloud.status==="cloud"
+      ? `<p><span class="pill ok">Saved to your account</span></p><p>Your entries are saved privately to your Claude account, so they're there on any device where you open this page. They're stored in a private space that only you can read — even if you share this page with someone, they see an empty study, not your journal.</p>`
+      : `<p><span class="pill">Saved on this device</span></p><p>Your entries are saved in this browser only. Clearing browser data or switching devices will lose them, so download a backup now and then. (When you open this page inside Claude while signed in, entries are saved privately to your account instead.)</p>
+         ${storageOK?"":`<p style="color:#b4483c"><strong>This browser is blocking storage</strong> (for example, a private window). Your writing will be lost when you close the page unless you download a backup.</p>`}`}
     <div class="row">
       <button class="btn" id="exportBtn">Download backup</button>
       <label class="btn" for="importFile">Restore from backup</label>
       <input type="file" id="importFile" accept="application/json,.json" hidden>
     </div>
     <h3>Start over</h3>
-    <p class="small muted">Erases all journal entries and progress on this device.</p>
+    <p class="small muted">Erases all your journal entries and progress.</p>
     <button class="btn danger" id="resetBtn">Erase everything</button>
   </div>
   <div class="card soft small">
@@ -708,14 +774,14 @@ function bind(){
   });
   document.querySelectorAll("[data-rt]").forEach(c=>c.addEventListener("change", ()=>{
     const [m,d] = location.hash.match(/\d+/g).map(Number); const k=dayKey(m,d);
-    const r = S.routine[k] || []; r[+c.dataset.rt] = c.checked; S.routine[k]=r; save();
+    const r = S.routine[k] || []; r[+c.dataset.rt] = c.checked; S.routine[k]=r; touchMeta();
     if(ROUTINE.every((_,i)=>r[i]) && !S.done[k]){ toast("Routine finished — tap “Mark day complete” when you're ready."); }
   }));
   const md = $("#markDone");
   if(md) md.addEventListener("click", ()=>{
     const [m,d] = location.hash.match(/\d+/g).map(Number); const k = dayKey(m,d);
-    if(S.done[k]){ delete S.done[k]; save(); route(); return; }
-    S.done[k] = new Date().toISOString(); save();
+    if(S.done[k]){ delete S.done[k]; touchMeta(); route(); return; }
+    S.done[k] = new Date().toISOString(); touchMeta();
     const left = 90-totalDone();
     toast(left ? `Day ${d} complete. ${left} to go.` : "All 90 days complete. Well done.");
     if(d===30) location.hash = `#/m/${m}/r`;
@@ -731,14 +797,20 @@ function bind(){
   if(js) js.addEventListener("input", ()=>{ const q=js.value.toLowerCase().trim();
     document.querySelectorAll("#jlist .entry").forEach(e=>e.hidden = q && !e.dataset.s.includes(q)); });
   const pj = $("#printJ"); if(pj) pj.addEventListener("click", ()=>window.print());
-  document.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{ S.settings.version=b.dataset.ver; save(); route(); toast("Translation set to "+b.dataset.ver); }));
-  document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>{ S.settings.theme=b.dataset.themeSet; save(); applyTheme(); route(); }));
+  document.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{ S.settings.version=b.dataset.ver; touchMeta(); route(); toast("Translation set to "+b.dataset.ver); }));
+  document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>{ S.settings.theme=b.dataset.themeSet; touchMeta(); applyTheme(); route(); }));
   const ex = $("#exportBtn");
-  if(ex) ex.addEventListener("click", ()=>{
-    const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
-    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
-    a.download = `90-day-study-backup-${new Date().toISOString().slice(0,10)}.json`;
-    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+  if(ex) ex.addEventListener("click", async ()=>{
+    const filename = `90-day-study-backup-${new Date().toISOString().slice(0,10)}.json`;
+    const data = JSON.stringify(S,null,2);
+    const dl = (window.claude && typeof claude.use==="function") ? await claude.use("downloads").catch(()=>null) : null;
+    if(dl){
+      try{ await dl.save({filename, data}); toast("Backup saved"); }
+      catch(e){ if(e && e.code==="declined") return; toast(e && e.code==="rate_limited" ? "Try again in a moment" : "Downloads aren't available here"); }
+      return;
+    }
+    const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([data],{type:"application/json"}));
+    a.download = filename; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
     toast("Backup downloaded");
   });
   const im = $("#importFile");
@@ -747,21 +819,22 @@ function bind(){
     const rd = new FileReader();
     rd.onload = () => { try{ const o = JSON.parse(rd.result); if(!o || typeof o.entries!=="object") throw 0;
         if(!confirm("Replace everything on this device with this backup?")) return;
-        S = Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); save(); applyTheme(); toast("Backup restored"); route();
+        S = Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); save(); cloudPushAll(); applyTheme(); toast("Backup restored"); route();
       }catch(e){ toast("That file isn't a valid backup"); } };
     rd.readAsText(f);
   });
   const rs = $("#resetBtn");
-  if(rs) rs.addEventListener("click", ()=>{
-    if(!confirm("Erase all your journal entries and progress on this device? This can't be undone.")) return;
+  if(rs) rs.addEventListener("click", async ()=>{
+    if(!confirm("Erase all your journal entries and progress? This can't be undone.")) return;
     if(!confirm("Are you sure? Consider downloading a backup first.")) return;
-    S = blank(); save(); applyTheme(); toast("Everything erased"); location.hash="#/";
+    S = blank(); save(); await cloudWipe(); applyTheme(); toast("Everything erased"); location.hash="#/";
   });
 }
 
 applyTheme();
 window.addEventListener("hashchange", route);
 route();
+cloudInit();
 </script>
 </body>
 </html>
