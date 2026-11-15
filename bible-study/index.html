@@ -1,0 +1,767 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>90-Day Study Journal</title>
+<meta name="description" content="A private, interactive 90-day Bible study on trust, forgiveness, and betrayal, with daily readings, journaling, weekly worksheets, and progress tracking.">
+<style>
+:root{
+  --bg:#f6f3ee; --surface:#fffdf9; --surface-2:#efe9e0; --text:#2a2622; --muted:#6b635a;
+  --line:#ddd4c7; --accent:#7a5c3e; --accent-soft:#efe4d6; --done:#4f7a5a; --done-soft:#e2eee3;
+  --m1:#5a7392; --m2:#8a6a3f; --m3:#7b5a7a; --focus:#3b6ea8;
+  --radius:12px; --shadow:0 1px 2px rgba(0,0,0,.05),0 4px 14px rgba(0,0,0,.04);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#1b1916; --surface:#24211d; --surface-2:#2d2924; --text:#ece6dd; --muted:#a59c90;
+    --line:#3a352f; --accent:#d2ad84; --accent-soft:#3a3027; --done:#86b893; --done-soft:#26342a;
+    --m1:#91aacb; --m2:#d1ad78; --m3:#c29cc1; --focus:#8fb6e8; --shadow:none;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#1b1916; --surface:#24211d; --surface-2:#2d2924; --text:#ece6dd; --muted:#a59c90;
+  --line:#3a352f; --accent:#d2ad84; --accent-soft:#3a3027; --done:#86b893; --done-soft:#26342a;
+  --m1:#91aacb; --m2:#d1ad78; --m3:#c29cc1; --focus:#8fb6e8; --shadow:none;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.6 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3,.serif{font-family:Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:normal;line-height:1.25}
+h1{font-size:1.9rem;margin:.2em 0 .3em}
+h2{font-size:1.4rem;margin:1.6em 0 .5em}
+h3{font-size:1.1rem;margin:1.2em 0 .4em}
+a{color:var(--accent)}
+:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.wrap{max-width:820px;margin:0 auto;padding:0 16px 80px}
+header.top{position:sticky;top:0;z-index:5;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(6px);border-bottom:1px solid var(--line)}
+header.top .wrap{display:flex;align-items:center;gap:12px;padding-bottom:0;min-height:56px;flex-wrap:wrap}
+.brand{font-family:Georgia,serif;font-size:1.05rem;text-decoration:none;color:var(--text);margin-right:auto;padding:12px 0}
+nav.main{display:flex;gap:4px;flex-wrap:wrap}
+nav.main a{text-decoration:none;color:var(--muted);padding:6px 10px;border-radius:8px;font-size:.92rem}
+nav.main a:hover,nav.main a.on{background:var(--surface-2);color:var(--text)}
+.crumbs{font-size:.88rem;color:var(--muted);margin:20px 0 0}
+.crumbs a{color:var(--muted)}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:20px;box-shadow:var(--shadow);margin:16px 0}
+.card.soft{background:var(--accent-soft);border-color:transparent;box-shadow:none}
+.muted{color:var(--muted)}
+.small{font-size:.88rem}
+.eyebrow{text-transform:uppercase;letter-spacing:.08em;font-size:.75rem;color:var(--muted);font-weight:600}
+.btn{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);background:var(--surface);color:var(--text);padding:9px 16px;border-radius:10px;font:inherit;font-size:.95rem;cursor:pointer;text-decoration:none}
+.btn:hover{background:var(--surface-2)}
+.btn.primary{background:var(--accent);border-color:var(--accent);color:var(--surface)}
+.btn.primary:hover{filter:brightness(1.07)}
+.btn.done{background:var(--done-soft);border-color:var(--done);color:var(--done)}
+.btn.danger{color:#b4483c;border-color:#d9a59e}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.spread{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap}
+.grid3{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+.month-card{display:block;text-decoration:none;color:inherit;border-top:4px solid var(--mc)}
+.month-card:hover{border-color:var(--line);border-top-color:var(--mc)}
+.bar{height:8px;background:var(--surface-2);border-radius:99px;overflow:hidden;margin:10px 0 6px}
+.bar>i{display:block;height:100%;background:var(--mc,var(--accent));border-radius:99px;transition:width .3s}
+.ring{font-variant-numeric:tabular-nums}
+.prayer{font-family:Georgia,serif;font-size:1.05rem;line-height:1.75;border-left:3px solid var(--accent);padding:4px 0 4px 18px;margin:12px 0;font-style:italic}
+ul.q{padding-left:1.2em;margin:.4em 0}
+ul.q li{margin:.35em 0}
+label.fl{display:block;font-weight:600;font-size:.95rem;margin:16px 0 6px}
+label.fl .muted{font-weight:normal}
+textarea,input[type=text]{width:100%;font:inherit;color:var(--text);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;resize:vertical}
+textarea{min-height:110px;line-height:1.55}
+textarea.short{min-height:64px}
+textarea:focus,input:focus{outline:none;border-color:var(--focus);box-shadow:0 0 0 3px color-mix(in srgb,var(--focus) 20%,transparent)}
+.saved{font-size:.8rem;color:var(--done);opacity:0;transition:opacity .3s}
+.saved.show{opacity:1}
+.checks{list-style:none;padding:0;margin:8px 0}
+.checks li{display:flex;gap:12px;align-items:flex-start;padding:10px 0;border-bottom:1px solid var(--line)}
+.checks li:last-child{border-bottom:0}
+.checks input{width:20px;height:20px;margin-top:3px;accent-color:var(--done);flex:none}
+.checks .t{font-weight:600}
+.scripture{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.scripture .ref{font-family:Georgia,serif;font-size:1.7rem}
+.prompt{font-family:Georgia,serif;font-size:1.25rem;line-height:1.45;margin:4px 0 0}
+.days{display:grid;grid-template-columns:repeat(auto-fill,minmax(44px,1fr));gap:6px;margin:10px 0}
+.days a{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:8px;border:1px solid var(--line);text-decoration:none;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums;background:var(--surface)}
+.days a:hover{border-color:var(--mc,var(--accent));color:var(--text)}
+.days a.d{background:var(--mc,var(--done));border-color:var(--mc,var(--done));color:var(--surface);font-weight:600}
+.days a.cur{outline:2px solid var(--mc,var(--accent));outline-offset:1px;color:var(--text)}
+.wk{border-left:4px solid var(--mc);}
+.daylist{list-style:none;padding:0;margin:8px 0}
+.daylist li a{display:grid;grid-template-columns:28px 64px 1fr;gap:10px;align-items:baseline;padding:10px 4px;border-bottom:1px solid var(--line);text-decoration:none;color:inherit}
+.daylist li:last-child a{border-bottom:0}
+.daylist li a:hover{background:var(--surface-2)}
+.daylist .n{font-variant-numeric:tabular-nums;color:var(--muted);font-size:.9rem}
+.daylist .r{font-family:Georgia,serif;font-size:.95rem}
+.daylist .p{font-size:.92rem;color:var(--muted)}
+.daylist .tick{color:var(--done);font-weight:700}
+.pill{display:inline-block;font-size:.78rem;padding:2px 9px;border-radius:99px;background:var(--surface-2);color:var(--muted)}
+.pill.ok{background:var(--done-soft);color:var(--done)}
+.pager{display:flex;justify-content:space-between;gap:10px;margin-top:24px;flex-wrap:wrap}
+.group{border:1px solid var(--line);border-radius:10px;padding:4px 16px 14px;margin:14px 0;background:var(--bg)}
+.group>h4{margin:12px 0 0;font-size:.95rem}
+.tag-m{color:var(--mc)}
+.entry{border-bottom:1px solid var(--line);padding:14px 0}
+.entry:last-child{border-bottom:0}
+.entry .q{font-size:.9rem;color:var(--muted);margin:0 0 4px}
+.entry .a{white-space:pre-wrap;margin:0}
+.search{margin:8px 0 4px}
+.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--text);color:var(--bg);padding:10px 18px;border-radius:10px;font-size:.9rem;opacity:0;pointer-events:none;transition:opacity .3s;z-index:20}
+.toast.show{opacity:1}
+table.anchors{width:100%;border-collapse:collapse}
+table.anchors td{padding:10px 4px;border-bottom:1px solid var(--line)}
+table.anchors tr:last-child td{border-bottom:0}
+.hero{padding:28px 0 4px}
+@media (max-width:560px){
+  h1{font-size:1.55rem}
+  .card{padding:16px}
+  .scripture .ref{font-size:1.4rem}
+  .daylist li a{grid-template-columns:24px 1fr}
+  .daylist .r{grid-column:2}
+  .daylist .p{grid-column:2}
+  nav.main{width:100%;padding-bottom:8px}
+  header.top{position:static}
+}
+@media print{
+  header.top,.no-print,.pager,.btn{display:none!important}
+  body{background:#fff;color:#000}
+  .card{box-shadow:none;border:0;padding:0}
+}
+</style>
+</head>
+<body>
+<header class="top">
+  <div class="wrap">
+    <a class="brand" href="#/">90-Day Study</a>
+    <nav class="main" id="nav">
+      <a href="#/" data-k="home">Home</a>
+      <a href="#/m/1" data-k="m1">Trust</a>
+      <a href="#/m/2" data-k="m2">Forgiveness</a>
+      <a href="#/m/3" data-k="m3">Betrayal</a>
+      <a href="#/journal" data-k="journal">My journal</a>
+      <a href="#/settings" data-k="settings">Settings</a>
+    </nav>
+  </div>
+</header>
+<main class="wrap" id="app" tabindex="-1"></main>
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script>
+/* ======================= STUDY CONTENT ======================= */
+const STUDY = [
+{
+  n:1, name:"Trust", color:"var(--m1)",
+  theme:"Learning where to place your trust when someone you love has broken it.",
+  intro:"Your wife's affair may have caused you to question more than her faithfulness: your judgment, the reality of your marriage, your future security, and whether you can trust another person with your heart. This month separates trust in God from expectations of other people. Trusting God does not mean ignoring warning signs or accepting dishonesty.",
+  days:[
+    ["Proverbs 3:5–6","What does trusting God with my whole heart look like when my marriage feels uncertain?"],
+    ["Psalm 56:3–4","What am I most afraid of right now? Have I taken those fears to God?"],
+    ["Jeremiah 17:7–8","Have I allowed my wife's actions to determine my sense of stability and worth?"],
+    ["Psalm 46:1–3","Where do I need God to be my refuge right now?"],
+    ["Isaiah 26:3–4","What thoughts repeatedly interrupt my peace?"],
+    ["Matthew 6:25–34","Am I spending more time worrying about what might happen than dealing with what I know?"],
+    ["Psalm 62:5–8","What would it look like to place my emotional weight on God instead of trying to control everything?"],
+    ["Psalm 34:17–18","Where does this situation hurt me the most?"],
+    ["Psalm 147:3","What parts of me feel broken or damaged?"],
+    ["John 14:1","What does Jesus teach about finding peace when my circumstances are unstable?"],
+    ["2 Corinthians 1:3–4","How can I allow God to comfort me instead of suppressing my emotions?"],
+    ["Psalm 13:1–6","Have I been honest with God about my disappointment and frustration?"],
+    ["Isaiah 41:10","What am I afraid to face, and what would it mean to face it with God's help?"],
+    ["Romans 8:38–39","Has this experience caused me to question whether I am loved or valued?"],
+    ["Proverbs 4:23","What does guarding my heart mean after experiencing infidelity?"],
+    ["James 1:5","What decisions am I struggling to make, and have I asked God for wisdom?"],
+    ["Matthew 7:15–20","How do I distinguish someone's words from the evidence of their actions?"],
+    ["1 Thessalonians 5:21–22","Am I evaluating what I am being told or simply hoping it is true?"],
+    ["Proverbs 14:15","Where do I need to become less trusting of appearances and more attentive to facts?"],
+    ["Proverbs 22:3","What warning signs or boundaries should I take seriously?"],
+    ["Galatians 6:4–5","What responsibilities belong to me, and what responsibilities belong to my wife?"],
+    ["Philippians 4:6–7","What worries am I carrying that I need to surrender to God?"],
+    ["Psalm 23:1–4","What does it mean to allow God to lead me through a difficult season?"],
+    ["Romans 12:2","What thought patterns need to change?"],
+    ["2 Timothy 1:7","Where have fear and insecurity begun influencing my decisions?"],
+    ["Psalm 37:3–7","Can I remain grounded without knowing how everything will turn out?"],
+    ["Hebrews 10:23","What promises of God can I hold onto during uncertainty?"],
+    ["Isaiah 43:18–19","What might a new chapter of my life look like, regardless of the outcome of my marriage?"],
+    ["Psalm 121:1–8","Where have I experienced God's presence during this month?"],
+    ["Proverbs 16:3","What am I committing to God as I enter the next stage of my healing?"]
+  ],
+  weeks:[
+    { title:"Where does my trust come from?",
+      questions:["What does trusting God mean when I cannot trust the person closest to me?","Have I confused trusting my wife with trusting God?","What am I trying to control because I feel emotionally unsafe?","How can I distinguish faith from denial?"],
+      prayer:"God, I am struggling with trust. Someone I committed my life to has hurt me in a way I never expected. I find myself questioning things I once believed were secure. Help me understand that my foundation does not have to collapse because someone else made destructive decisions. Teach me to trust You even when I do not understand what is happening. Give me clarity where there is confusion, peace where there is anxiety, and wisdom where I feel uncertain. Help me recognize the difference between trusting You and ignoring what is happening around me. Amen.",
+      action:{ title:"Start a trust inventory", text:"Create two columns and review them each morning.",
+        cols:true, fields:[
+          ["cannot","Things I cannot control","e.g. her past decisions, whether she tells the truth, her willingness to change, how quickly I heal"],
+          ["can","Things I can control","e.g. my boundaries, whether I accept dishonesty, my personal decisions, my commitment to healing"]]}},
+    { title:"When trust has been broken",
+      questions:["What has this experience changed about how I see myself?","Am I allowing someone else's decisions to determine my worth?","What emotions have I been suppressing?","Can I acknowledge that I am hurting without considering myself weak?"],
+      prayer:"Father, You know what has happened, including the things I struggle to put into words. I am disappointed, hurt, and uncertain. Sometimes I feel strong, and other times I feel like I am starting over emotionally. Remind me that my value is not determined by someone else's ability to recognize it. Help me stop measuring myself against another person or questioning what I should have done differently. Heal the places in me that have been wounded. Give me the strength to acknowledge my pain without allowing it to define me. Amen.",
+      action:{ title:"Identify three emotional triggers", text:"The goal is not to eliminate feelings, but to become intentional about responding.",
+        groups:[1,2,3].map(i=>({title:"Trigger "+i, fields:[
+          ["t"+i+"what","What happened?"],["t"+i+"thought","What did I immediately think?"],
+          ["t"+i+"emotion","What emotion did I experience?"],["t"+i+"healthy","What response would be healthy rather than reactive?"]]}))}},
+    { title:"Discernment, wisdom, and boundaries",
+      questions:["Can I love someone without immediately trusting them?","What does accountability look like in a marriage after infidelity?","What boundaries would help me feel emotionally safe?","Am I making decisions from wisdom or fear?"],
+      prayer:"Lord, give me discernment. Help me recognize the difference between genuine change and temporary reassurance. Do not allow my desire for things to return to normal to prevent me from seeing what is actually happening. Teach me to establish healthy boundaries without becoming bitter. Help me evaluate actions, not just promises. Give me patience to make important decisions without rushing, and courage to acknowledge the truth even when it is uncomfortable. Amen.",
+      action:{ title:"Write your personal trust requirements", text:"Identify five things that would need to be consistently demonstrated before trust could begin to be rebuilt. Examples include honesty, transparency and accountability, ending contact with the affair partner, willingness to answer reasonable questions, and consistent participation in marriage counseling.",
+        fields:[["r1","Requirement 1"],["r2","Requirement 2"],["r3","Requirement 3"],["r4","Requirement 4"],["r5","Requirement 5"],
+          ["safety","What emotional safety means in my circumstances"]], shortFirst:5}},
+    { title:"Rebuilding confidence and finding peace",
+      questions:["What does emotional peace look like for me?","Am I waiting for my wife to change before allowing myself to heal?","What parts of my life have I neglected since discovering the affair?","What would it mean to regain confidence in myself?"],
+      prayer:"God, I do not know exactly what the future holds, but I do not want uncertainty to control my life. Help me regain my confidence, restore my peace, and develop the wisdom to move forward. Teach me to live one day at a time without becoming consumed by yesterday or afraid of tomorrow. Help me remember that I am still a whole person, with purpose, value, and a future. Amen.",
+      action:{ title:"Reestablish one personal routine", text:"Choose one routine that strengthens your physical, mental, or spiritual well-being. Examples: 20 minutes in prayer and scripture each morning, walking or exercising four times per week, reconnecting with a positive personal interest, or scheduling time with a trusted friend or mentor.",
+        fields:[["routine","The routine I am reestablishing"],["plan","When and how often I will do it"],["notes","How it is going"]]}}
+  ],
+  reflection:["What have I learned about trusting God?","What have I learned about trusting people?","What boundaries have become clearer?","What fears still need attention?","Am I beginning to distinguish my wife's actions from my own identity?"]
+},
+{
+  n:2, name:"Forgiveness", color:"var(--m2)",
+  theme:"Understanding forgiveness without excusing the offense.",
+  intro:"Forgiveness after infidelity can be difficult because the person who hurt you is someone you may still see, live with, and interact with every day. You may want to forgive but still be angry; want peace but keep replaying what happened; or feel pressure to forgive before processing the hurt.",
+  key:"Forgiveness is not the same as reconciliation. Forgiveness is a process of releasing personal vengeance and entrusting justice to God. Reconciliation involves rebuilding a relationship and requires participation, truth, repentance, and changed behavior from both people. You do not have to pretend the offense was insignificant to practice forgiveness.",
+  days:[
+    ["Ephesians 4:31–32","What does forgiveness mean to me, and how has my understanding changed since the affair?"],
+    ["Colossians 3:12–13","What does it mean to extend forgiveness while still acknowledging the hurt?"],
+    ["Matthew 6:14–15","What does Jesus teach about forgiveness, and what makes this difficult for me?"],
+    ["Luke 6:27–28","How can I avoid allowing anger to dictate how I treat others?"],
+    ["Mark 11:25","What resentment am I carrying that I need to bring honestly before God?"],
+    ["Romans 12:17–19","What would it look like to release personal revenge and leave justice to God?"],
+    ["Psalm 103:8–12","What does God's mercy teach me about the meaning of forgiveness?"],
+    ["Ephesians 4:26–27","How can I acknowledge my anger without allowing it to control me?"],
+    ["James 1:19–20","What happens when I respond before processing my emotions?"],
+    ["Psalm 37:7–9","What am I struggling to accept or release?"],
+    ["Proverbs 15:1","How can I communicate my pain without allowing anger to destroy productive conversations?"],
+    ["Ecclesiastes 7:9","Have I allowed anger to become a permanent part of my identity?"],
+    ["Hebrews 12:14–15","Is resentment beginning to affect other areas of my life?"],
+    ["Matthew 5:43–44","What does it mean to respond with integrity when someone has wronged me?"],
+    ["Proverbs 28:13","Why is acknowledging wrongdoing important to genuine repentance?"],
+    ["2 Corinthians 7:9–11","What is the difference between feeling sorry about consequences and genuinely recognizing wrongdoing?"],
+    ["Luke 19:1–10","What can Zacchaeus teach me about repentance demonstrated through actions?"],
+    ["James 5:16","What role should honesty and confession play in repairing broken relationships?"],
+    ["Matthew 3:8","What does it mean for repentance to produce visible change?"],
+    ["1 John 1:9","What does God's forgiveness teach me about confession and accountability?"],
+    ["Galatians 6:7–9","How do actions produce consequences, and why is consistent change important?"],
+    ["Matthew 18:21–22","What does Jesus teach about the ongoing nature of forgiveness?"],
+    ["Genesis 50:15–21","What can Joseph's response to betrayal teach me about forgiveness and boundaries?"],
+    ["Romans 12:20–21","How can I resist allowing evil to influence my character?"],
+    ["Micah 7:18–19","What does God's compassion teach me about mercy?"],
+    ["Philippians 3:13–14","What would it mean to move forward without pretending the past never happened?"],
+    ["Isaiah 61:1–3","What areas of my life need restoration?"],
+    ["Psalm 86:5","How can I become more compassionate without abandoning my standards?"],
+    ["Luke 23:34","What can I learn from Jesus about forgiveness in the face of wrongdoing?"],
+    ["Romans 8:1–2","What would it mean to stop allowing guilt, anger, and resentment to govern my life?"]
+  ],
+  weeks:[
+    { title:"What does forgiveness actually mean?",
+      questions:["Is forgiveness something I feel, something I choose, or both?","Can I forgive someone while still being deeply hurt?","Does forgiveness mean I have to stop asking questions?","Am I confusing forgiveness with allowing someone to avoid accountability?"],
+      prayer:"Father, I am struggling with forgiveness. I know what Your Word teaches, but I am also dealing with the reality of what happened to me. I do not want to become consumed by anger, resentment, or bitterness. Help me understand forgiveness through Your Word rather than through pressure or expectations from other people. Give me the strength to begin releasing the desire for revenge without pretending that what happened was acceptable. Help me distinguish forgiveness from reconciliation and give me wisdom to understand both. Amen.",
+      action:{ title:"Write an honest forgiveness inventory", text:"Do not censor yourself. This is for honest reflection, not for producing the answer you think a Christian should give.",
+        fields:[["happened","What happened to me was…"],["hurts","The part that hurts the most is…"],["wish","What I wish my wife understood is…"],["release","What I am struggling to release is…"],["understand","What I need God to help me understand about forgiveness is…"]]}},
+    { title:"Dealing with anger and resentment",
+      questions:["What situations cause my anger to resurface?","Am I angry about the affair itself, the deception, or both?","What would healthy emotional expression look like?","How can I prevent bitterness from influencing my relationships with other people?"],
+      prayer:"Lord, You know how deeply I have been hurt. There are moments when my anger feels overwhelming. Sometimes I revisit what happened, question what I thought was real, and struggle with the fact that someone I trusted could make these decisions. Help me process my anger without becoming controlled by it. Give me the ability to speak honestly, establish boundaries, and respond with wisdom. Protect my heart from bitterness, but do not let me confuse peace with silence. Amen.",
+      action:{ title:"Develop an anger-processing routine", text:"This is not avoiding difficult conversations; it is approaching them intentionally. Use these steps the next time anger surfaces.",
+        steps:["Pause before responding","Identify what triggered the emotion","Write down what I am feeling","Pray before initiating a difficult conversation","Return to the conversation when I can communicate clearly"],
+        fields:[["trigger","What triggered it"],["feeling","What I am feeling"],["approach","How I will return to the conversation"]]}},
+    { title:"Forgiveness, accountability, and repentance",
+      questions:["What is the difference between an apology and genuine repentance?","Can someone genuinely regret hurting me without being prepared to change?","What does accountability look like after infidelity?","How can forgiveness coexist with consequences?"],
+      prayer:"God, help me understand the relationship between forgiveness, repentance, and accountability. Teach me not to mistake words for transformation. Help me recognize genuine humility, honesty, and changed behavior. Give me the wisdom to avoid becoming judgmental while also refusing to ignore harmful patterns. Help me release the responsibility of controlling another person's choices while remaining responsible for my own. Amen.",
+      action:{ title:"Establish your definition of genuine repentance", text:"You cannot manufacture repentance in another person; you can establish what you require in order to participate in rebuilding the relationship.",
+        fields:[["apology","An apology is…"],["remorse","Remorse is…"],["confession","Confession is…"],["repentance","Repentance is…"],["change","Consistent behavioral change looks like…"],["accountability","What genuine accountability would look like in my marriage"]], shortFirst:5}},
+    { title:"Releasing resentment and finding freedom",
+      questions:["What am I afraid will happen if I forgive?","Do I believe forgiveness means giving someone another opportunity to hurt me?","What does emotional freedom look like?","How can I move forward without carrying the affair into every future interaction?"],
+      prayer:"Father, I want to experience the freedom that comes from living according to Your Word. Help me release resentment without denying the truth. Teach me that forgiveness does not require me to abandon wisdom, boundaries, or accountability. Heal the anger that continues to resurface. Help me stop allowing yesterday's pain to determine every decision I make today. Give me a heart that can pursue peace without surrendering discernment. Amen.",
+      action:{ title:"Write a personal forgiveness declaration", text:"Write it in your own words. You can start from the example and change it until it is true for you.",
+        example:"I acknowledge the hurt caused by this betrayal. I will not pretend it did not happen, and I will not excuse the choices that were made. I am choosing to work toward forgiveness so that resentment does not control my future. I will allow God to guide my healing, while maintaining the boundaries necessary to protect my emotional well-being.",
+        fields:[["declaration","My forgiveness declaration"]]}}
+  ],
+  reflection:["What have I learned about biblical forgiveness?","What am I still struggling to release?","Have I confused forgiveness with reconciliation?","What accountability do I believe is necessary?","Am I beginning to pursue forgiveness for my own spiritual well-being rather than to satisfy someone else's expectations?"]
+},
+{
+  n:3, name:"Betrayal", color:"var(--m3)",
+  theme:"Processing betrayal, reclaiming your identity, and rebuilding your life.",
+  intro:"An affair can cause you to question what was happening behind your back, how long you were being deceived, what the other person knew, what signs you may have overlooked, and whether your marriage was what you thought it was. This month is about confronting those questions without allowing them to become the foundation of your identity.",
+  days:[
+    ["Psalm 55:12–14","What makes betrayal by someone close to me different from being hurt by a stranger?"],
+    ["Psalm 41:9","How does the experience of being betrayed by someone I trusted affect me?"],
+    ["Genesis 37:18–28","What can Joseph's betrayal by his brothers teach me about enduring injustice?"],
+    ["Psalm 22:1–5","Have I expressed my deepest disappointment to God?"],
+    ["John 13:21–30","What can I learn from Jesus experiencing betrayal from someone close to Him?"],
+    ["Psalm 31:9–16","What emotions have I been holding inside?"],
+    ["Lamentations 3:19–26","How can I maintain hope when my circumstances are painful?"],
+    ["Ecclesiastes 3:1–4","What am I grieving that I may not have acknowledged?"],
+    ["Psalm 6:6–9","Have I allowed myself to express sadness rather than always trying to be strong?"],
+    ["John 11:32–36","What does Jesus' response to grief teach me about the importance of acknowledging pain?"],
+    ["1 Peter 5:7","What emotional burdens am I struggling to release?"],
+    ["Psalm 42:5–11","How can I speak hope to myself when my emotions feel overwhelming?"],
+    ["2 Corinthians 4:8–9","Where have I felt overwhelmed, and where have I found strength to continue?"],
+    ["Revelation 21:4","What would it mean to believe that my current pain does not have to define my future?"],
+    ["Genesis 1:26–27","What does being created in God's image mean for my identity and worth?"],
+    ["Ephesians 2:10","What gifts, strengths, and purpose have I neglected during this difficult season?"],
+    ["Psalm 139:13–18","What does God knowing me completely teach me about my value?"],
+    ["Romans 8:31–39","Have I allowed this experience to make me question whether I am worthy of love?"],
+    ["1 Peter 2:9–10","What does my identity in Christ mean outside of my role as a husband?"],
+    ["Philippians 4:11–13","How can I find strength and contentment without allowing my circumstances to determine my identity?"],
+    ["2 Timothy 1:7","What would it look like to move forward with confidence instead of fear?"],
+    ["Isaiah 40:28–31","Where do I need renewed strength?"],
+    ["Proverbs 24:16","How can I understand resilience when healing is not a straight line?"],
+    ["Romans 5:3–5","What can I learn about perseverance during a difficult season?"],
+    ["James 1:2–5","How can I develop wisdom through a situation I never wanted to experience?"],
+    ["Philippians 1:6","What areas of my life still need development and restoration?"],
+    ["Matthew 11:28–30","What burdens am I carrying that I need to bring to God?"],
+    ["Deuteronomy 31:8","How can I move into the future without allowing fear to make my decisions?"],
+    ["Psalm 30:5","What does the possibility of joy after a painful season mean to me?"],
+    ["Philippians 3:12–14","What am I taking from this experience, and what am I choosing not to carry into my future?"]
+  ],
+  weeks:[
+    { title:"Understanding the pain of betrayal",
+      questions:["What aspect of the betrayal has been most difficult to process?","Am I grieving the affair, the deception, or the marriage I thought I had?","What questions continue to occupy my thoughts?","Have I given myself permission to acknowledge how deeply this has affected me?"],
+      prayer:"God, I am struggling with the reality of betrayal. I never expected to experience this kind of pain in my marriage. I am trying to understand what happened and how someone I trusted could make decisions that would affect me so deeply. Help me process what I am feeling. Give me the courage to confront the truth and the wisdom to understand what belongs to me and what does not. Do not allow this experience to convince me that I am unworthy of love, respect, or honesty. Be present with me as I work through this pain. Amen.",
+      action:{ title:"Write your betrayal narrative", text:"This is not a letter you have to give your wife; it is an opportunity to acknowledge your experience without minimizing it.",
+        fields:[["discovered","What I discovered"],["before","What I believed before the discovery"],["after","What changed afterward"],["hurt","What hurt the most"],["questions","What questions remain unanswered"],["need","What I need in order to move forward"]]}},
+    { title:"Grief, anger, and emotional restoration",
+      questions:["What emotions have I found hardest to express?","Have I been trying to appear strong instead of acknowledging that I am hurting?","What does healthy grieving look like?","What support do I need from trusted people?"],
+      prayer:"Father, I am tired of carrying emotions I do not always know how to explain. Sometimes I feel angry. Sometimes I feel disappointed. Sometimes I feel sadness that I cannot put into words. Help me understand that I do not have to suppress my emotions to demonstrate strength. Give me the courage to process my grief and the wisdom to seek support when I need it. Restore the parts of my life that have been neglected while I have been trying to understand what happened. Amen.",
+      action:{ title:"Create a personal support system", text:"You do not have to process everything alone.",
+        fields:[["spiritual","Spiritual support","A pastor, mature Christian mentor, or spiritual counselor"],["emotional","Emotional support","An individual therapist experienced in betrayal trauma or infidelity"],["personal","Personal support","A trusted friend or family member who can listen without escalating the situation"]], allShort:true}},
+    { title:"Reclaiming your identity and self-worth",
+      questions:["Who am I outside of this marriage?","Have I internalized my wife's decisions as a reflection of my inadequacy?","What qualities do I still recognize and appreciate about myself?","What personal goals have I neglected?","How can I regain confidence without becoming emotionally hardened?"],
+      prayer:"God, remind me who I am. I do not want this experience to become the definition of my identity. Help me recognize the value You placed in me before this situation ever happened. Restore my confidence, strengthen my character, and help me recognize my purpose beyond my marriage. Teach me to walk with humility without losing my self-respect. Help me remain capable of love without becoming vulnerable to repeated dishonesty. Amen.",
+      action:{ title:"Rebuild your personal identity outside your marriage", text:"Take action on at least one personal goal this week.",
+        fields:[["qualities","Five qualities I respect about myself"],["goals","Three personal goals I want to pursue"],["relationships","Three relationships outside my marriage that deserve attention"],["purpose","One activity that gives me a sense of purpose"],["habit","One habit I want to reestablish"],["thisweek","The goal I am acting on this week"]]}},
+    { title:"Moving forward without losing yourself",
+      questions:["What does moving forward mean to me?","What would a healthy future look like?","What conditions would need to exist for reconciliation to be possible?","What would I need to do to protect my well-being if reconciliation does not happen?","How can I make decisions based on wisdom rather than emotional pressure?"],
+      prayer:"Father, I am approaching a point where I need to think about my future. I do not know exactly what that future looks like. I ask You for wisdom, patience, and discernment. Help me make decisions that reflect my values and Your teachings. Protect me from making decisions out of anger, fear, loneliness, or pressure. If my marriage is to be rebuilt, let it be built on truth, accountability, respect, and genuine change. Regardless of what happens, help me become a stronger, wiser, more grounded person. Amen.",
+      action:{ title:"Write your personal vision for the next 12 months", text:"Describe the life you want to build, not just the marriage outcome you hope to achieve.",
+        fields:[["spiritual","Spiritual growth"],["emotional","Emotional health"],["physical","Physical health"],["family","Family and relationships"],["purpose","Personal purpose and development"]]}}
+  ],
+  reflection:["How has my understanding of betrayal changed?","What have I learned about myself?","Have I regained some confidence?","What emotional wounds still need attention?","What does a healthy future look like, regardless of my marriage outcome?"]
+}];
+
+const CLOSING = ["What has changed in my understanding of trust?","What have I learned about forgiveness?","What has betrayal revealed about the areas of my life that need care and attention?","What boundaries have become clearer?","What support do I need going forward?","What decisions should not be rushed?","What practices will I continue to protect my spiritual and emotional well-being?"];
+const ANCHORS = [["Your foundation","Proverbs 3:5–6"],["Your healing","Psalm 147:3"],["Your forgiveness","Ephesians 4:31–32"],["Your identity","Ephesians 2:10"],["Your future","Philippians 1:6"]];
+const ROUTINE = [
+  ["Opening prayer","5 min","Ask God for understanding, wisdom, and clarity."],
+  ["Scripture","10 min","Read the assigned passage, preferably twice. Focus on what the passage teaches."],
+  ["Journaling","10–15 min","Answer the prompt honestly. Do not write what you think you are supposed to feel."],
+  ["Personal application","5 min","Identify one way the scripture applies to your current circumstances."],
+  ["Closing prayer","5 min","Speak honestly to God about what you are taking away."]
+];
+const VERSIONS = ["NIV","ESV","KJV","NKJV","NLT","CSB","NASB"];
+
+/* ======================= STATE ======================= */
+const KEY = "ninetyDayStudy.v1";
+let S = load();
+function blank(){ return {v:1, entries:{}, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}, last:null}; }
+function load(){
+  try{ const raw = localStorage.getItem(KEY); if(raw){ const o = JSON.parse(raw); return Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); } }catch(e){}
+  return blank();
+}
+let storageOK = true;
+function save(){
+  try{ localStorage.setItem(KEY, JSON.stringify(S)); storageOK = true; }catch(e){ storageOK = false; }
+}
+const get = k => S.entries[k] || "";
+function set(k,v){ if(v) S.entries[k]=v; else delete S.entries[k]; save(); }
+
+/* ======================= HELPERS ======================= */
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const dayKey = (m,d) => `m${m}d${d}`;
+const isDone = (m,d) => !!S.done[dayKey(m,d)];
+const weekOf = d => d>28 ? 5 : Math.ceil(d/7);
+const weekRange = w => w===5 ? [29,30] : [(w-1)*7+1, w*7];
+function bgLink(ref){
+  const q = ref.replace(/–/g,"-");
+  return `https://www.biblegateway.com/passage/?search=${encodeURIComponent(q)}&version=${encodeURIComponent(S.settings.version)}`;
+}
+function monthDone(m){ let c=0; for(let d=1; d<=30; d++) if(isDone(m,d)) c++; return c; }
+function totalDone(){ return monthDone(1)+monthDone(2)+monthDone(3); }
+function nextDay(){
+  for(let m=1;m<=3;m++) for(let d=1;d<=30;d++) if(!isDone(m,d)) return [m,d];
+  return null;
+}
+function toast(msg){ const t=$("#toast"); t.textContent=msg; t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2200); }
+function applyTheme(){
+  const t = S.settings.theme;
+  if(t==="auto") document.documentElement.removeAttribute("data-theme");
+  else document.documentElement.setAttribute("data-theme", t);
+}
+function field(key, label, opts={}){
+  const v = get(key);
+  const cls = opts.short ? "short" : "";
+  const ph = opts.ph ? ` placeholder="${esc(opts.ph)}"` : "";
+  return `<label class="fl" for="f_${key}">${label}${opts.hint?` <span class="muted">— ${esc(opts.hint)}</span>`:""}</label>
+    <textarea id="f_${key}" class="${cls}" data-key="${key}"${ph}>${esc(v)}</textarea>`;
+}
+function savedTag(){ return `<span class="saved" aria-hidden="true">Saved</span>`; }
+
+/* ======================= VIEWS ======================= */
+function viewHome(){
+  const nd = nextDay(); const total = totalDone();
+  const cont = nd ? `<a class="btn primary" href="#/m/${nd[0]}/d/${nd[1]}">${total? "Continue" : "Begin"}: ${STUDY[nd[0]-1].name}, Day ${nd[1]}</a>`
+                  : `<a class="btn primary" href="#/closing">Open the 90-day closing reflection</a>`;
+  const ndInfo = nd ? STUDY[nd[0]-1].days[nd[1]-1] : null;
+  return `
+  <section class="hero">
+    <div class="eyebrow">A 90-day biblical study journey</div>
+    <h1>Trust · Forgiveness · Betrayal</h1>
+    <p class="muted">A personal study for navigating the emotional and spiritual impact of infidelity, rebuilding personal foundations, and seeking wisdom for the future. Read at your own pace — this is a guide, not a deadline.</p>
+  </section>
+  <div class="card">
+    <div class="spread">
+      <div><div class="eyebrow">Your progress</div>
+        <div class="serif" style="font-size:1.6rem"><span class="ring">${total}</span> of 90 days</div></div>
+      ${cont}
+    </div>
+    <div class="bar" style="--mc:var(--accent)"><i style="width:${total/90*100}%"></i></div>
+    ${ndInfo ? `<p class="small muted" style="margin:.6em 0 0">Next up: <strong>${esc(ndInfo[0])}</strong> — ${esc(ndInfo[1])}</p>`:""}
+  </div>
+  <div class="grid3">
+    ${STUDY.map(M=>{ const c=monthDone(M.n); return `
+      <a class="card month-card" href="#/m/${M.n}" style="--mc:${M.color}">
+        <div class="eyebrow">Month ${M.n}</div>
+        <h3 style="margin:.2em 0">${M.name}</h3>
+        <p class="small muted" style="margin:0">${esc(M.theme)}</p>
+        <div class="bar"><i style="width:${c/30*100}%"></i></div>
+        <div class="small muted">${c}/30 days</div>
+      </a>`;}).join("")}
+  </div>
+  <h2>How to use this study</h2>
+  <p>The order is intentional. First establish where your foundation rests; then examine forgiveness without minimizing the offense; finally process betrayal and consider how to move forward.</p>
+  <div class="card soft">
+    <strong>Important foundation.</strong> This study is not designed to pressure you into staying married, reconciling before you are ready, overlooking your wife's actions, or pretending everything is okay. Biblical forgiveness does not automatically restore trust. Reconciliation requires accountability, honesty, changed behavior, and participation from both people.
+  </div>
+  <h3>Daily routine · about 30–40 minutes</h3>
+  <ul class="checks">${ROUTINE.map(r=>`<li><div><span class="t">${r[0]}</span> <span class="pill">${r[1]}</span><div class="small muted">${r[2]}</div></div></li>`).join("")}</ul>
+  <h3>Three distinctions to keep in view</h3>
+  <div class="grid3">
+    <div class="card"><div class="eyebrow">1</div><strong>Trust is not the same as love.</strong><p class="small">You can love someone and still recognize that their actions have made them untrustworthy. Trust must be supported by consistent behavior.</p><div class="small muted">Proverbs 12:22 · Matthew 7:16</div></div>
+    <div class="card"><div class="eyebrow">2</div><strong>Forgiveness is not the same as reconciliation.</strong><p class="small">You can work toward forgiving without immediately restoring the marriage to its previous condition. Reconciliation involves truth, repentance, accountability, and mutual participation.</p><div class="small muted">Romans 12:18</div></div>
+    <div class="card"><div class="eyebrow">3</div><strong>Betrayal does not determine your worth.</strong><p class="small">Your wife's decisions are her responsibility; they are not a measurement of your value.</p><div class="small muted">Psalm 139:14 · Ephesians 2:10 · Romans 8:38–39</div></div>
+  </div>
+  <h2>Completion tracker</h2>
+  ${STUDY.map(M=>`<div style="--mc:${M.color}"><div class="small"><strong class="tag-m">Month ${M.n} — ${M.name}</strong></div>
+    <div class="days">${M.days.map((_,i)=>`<a href="#/m/${M.n}/d/${i+1}" class="${isDone(M.n,i+1)?"d":""}" aria-label="${M.name} day ${i+1}${isDone(M.n,i+1)?", complete":""}">${i+1}</a>`).join("")}</div></div>`).join("")}
+  <div class="row" style="margin-top:20px">
+    <a class="btn" href="#/closing">90-day closing reflection</a>
+    <a class="btn" href="#/journal">Read my journal</a>
+  </div>`;
+}
+
+function viewMonth(m){
+  const M = STUDY[m-1]; const c = monthDone(m);
+  const weekBlock = w => {
+    const [a,b] = weekRange(w);
+    const W = M.weeks[w-1];
+    const ws = weekStatus(m,w);
+    const items = [];
+    for(let d=a; d<=b; d++){ const [ref,p]=M.days[d-1];
+      items.push(`<li><a href="#/m/${m}/d/${d}"><span class="n">${isDone(m,d)?'<span class="tick" aria-label="complete">✓</span>':d}</span><span class="r">${esc(ref)}</span><span class="p">${esc(p)}</span></a></li>`); }
+    return `<div class="card wk">
+      <div class="spread"><div><div class="eyebrow">${w<5?`Week ${w} · Days ${a}–${b}`:`Days 29–30`}</div>
+        <h3 style="margin:.15em 0">${w<5?esc(W.title):"Monthly assessment"}</h3></div>
+        <a class="btn" href="#/m/${m}/${w<5?`w/${w}`:"r"}">${w<5?"Week page":"Month reflection"} ${ws}</a></div>
+      <ul class="daylist">${items.join("")}</ul></div>`;
+  };
+  return `<div style="--mc:${M.color}">
+  <p class="crumbs"><a href="#/">Home</a> / Month ${m}</p>
+  <div class="eyebrow tag-m" style="margin-top:14px">Month ${m}</div>
+  <h1>${M.name}</h1>
+  <p class="serif" style="font-size:1.15rem;margin-top:0">${esc(M.theme)}</p>
+  <p>${esc(M.intro)}</p>
+  ${M.key?`<div class="card soft"><strong>Key distinction.</strong> ${esc(M.key)}</div>`:""}
+  <div class="bar"><i style="width:${c/30*100}%"></i></div><div class="small muted">${c} of 30 days complete</div>
+  ${[1,2,3,4,5].map(weekBlock).join("")}
+  <div class="pager">${m>1?`<a class="btn" href="#/m/${m-1}">← Month ${m-1}: ${STUDY[m-2].name}</a>`:"<span></span>"}
+    ${m<3?`<a class="btn" href="#/m/${m+1}">Month ${m+1}: ${STUDY[m].name} →</a>`:`<a class="btn" href="#/closing">Closing reflection →</a>`}</div>
+  </div>`;
+}
+
+function weekStatus(m,w){
+  const pre = w<5 ? `m${m}w${w}` : `m${m}r`;
+  const any = Object.keys(S.entries).some(k=>k.startsWith(pre+"_"));
+  return any ? `<span class="pill ok">started</span>` : "";
+}
+
+function viewDay(m,d){
+  const M = STUDY[m-1]; const [ref,prompt] = M.days[d-1]; const k = dayKey(m,d);
+  const w = weekOf(d); const done = isDone(m,d);
+  const r = S.routine[k] || [];
+  S.last = [m,d]; save();
+  const prev = d>1 ? [m,d-1] : (m>1 ? [m-1,30] : null);
+  const next = d<30 ? [m,d+1] : (m<3 ? [m+1,1] : null);
+  return `<div style="--mc:${M.color}">
+  <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Day ${d}</p>
+  <div class="spread" style="margin-top:14px"><div class="eyebrow tag-m">${M.name} · Day ${d} of 30 · ${w<5?`Week ${w}: ${esc(M.weeks[w-1].title)}`:"Monthly assessment"}</div>
+    ${done?'<span class="pill ok">Completed</span>':""}</div>
+  <div class="card">
+    <div class="scripture"><div><div class="eyebrow">Today's scripture</div><div class="ref">${esc(ref)}</div></div>
+      <a class="btn" href="${bgLink(ref)}" target="_blank" rel="noopener">Read ${esc(S.settings.version)} ↗</a></div>
+    <p class="small muted" style="margin:.8em 0 0">Read it twice. Focus on what the passage teaches.</p>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Journal prompt</div>
+    <p class="prompt">${esc(prompt)}</p>
+    ${field(k+"_journal","My reflection",{ph:"Write honestly. Don't write what you think you're supposed to feel."})}
+    ${field(k+"_apply","Personal application",{short:true,hint:"one way this scripture applies to my situation"})}
+    ${savedTag()}
+  </div>
+  <div class="card">
+    <div class="eyebrow">Today's routine</div>
+    <ul class="checks">${ROUTINE.map((x,i)=>`<li><input type="checkbox" id="rt${i}" data-rt="${i}" ${r[i]?"checked":""}><label for="rt${i}"><span class="t">${x[0]}</span> <span class="pill">${x[1]}</span><div class="small muted">${x[2]}</div></label></li>`).join("")}</ul>
+  </div>
+  <div class="row no-print">
+    <button class="btn ${done?"done":"primary"}" id="markDone">${done?"✓ Day complete — undo":"Mark day complete"}</button>
+    <a class="btn" href="#/m/${m}/${w<5?`w/${w}`:"r"}">${w<5?`Week ${w} discussion & action`:"Month reflection"}</a>
+  </div>
+  <div class="pager">
+    ${prev?`<a class="btn" href="#/m/${prev[0]}/d/${prev[1]}">← ${prev[0]!==m?STUDY[prev[0]-1].name+" ":""}Day ${prev[1]}</a>`:"<span></span>"}
+    ${next?`<a class="btn" href="#/m/${next[0]}/d/${next[1]}">${next[0]!==m?STUDY[next[0]-1].name+" ":""}Day ${next[1]} →</a>`:`<a class="btn" href="#/closing">Closing reflection →</a>`}
+  </div></div>`;
+}
+
+function actionHTML(m,w,A){
+  const p = `m${m}w${w}_a_`;
+  let h = `<p>${esc(A.text)}</p>`;
+  if(A.steps){
+    h += `<ol>${A.steps.map(s=>`<li>${esc(s)}</li>`).join("")}</ol>`;
+  }
+  if(A.example){
+    h += `<div class="prayer" style="font-style:normal">${esc(A.example)}</div>
+      <button class="btn no-print" type="button" id="useExample">Start from this example</button>`;
+  }
+  if(A.groups){
+    h += A.groups.map(g=>`<div class="group"><h4>${esc(g.title)}</h4>${g.fields.map(f=>field(p+f[0],esc(f[1]),{short:true})).join("")}</div>`).join("");
+  } else if(A.cols){
+    h += `<div class="grid2">${A.fields.map(f=>`<div>${field(p+f[0],esc(f[1]),{ph:f[2]})}</div>`).join("")}</div>`;
+  } else {
+    h += A.fields.map((f,i)=>field(p+f[0],esc(f[1]),{short:A.allShort||(A.shortFirst&&i<A.shortFirst),ph:f[2]||""})).join("");
+  }
+  return h;
+}
+
+function viewWeek(m,w){
+  const M = STUDY[m-1]; const W = M.weeks[w-1]; const [a,b]=weekRange(w);
+  const p = `m${m}w${w}`;
+  return `<div style="--mc:${M.color}">
+  <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Week ${w}</p>
+  <div class="eyebrow tag-m" style="margin-top:14px">${M.name} · Week ${w} · Days ${a}–${b}</div>
+  <h1>${esc(W.title)}</h1>
+  <div class="days" style="max-width:420px">${Array.from({length:b-a+1},(_,i)=>a+i).map(d=>`<a href="#/m/${m}/d/${d}" class="${isDone(m,d)?"d":""}">${d}</a>`).join("")}</div>
+  <div class="card">
+    <h2 style="margin-top:0">Discussion questions</h2>
+    <p class="small muted">Use these on your own, with a mentor, or with a trusted friend.</p>
+    ${W.questions.map((q,i)=>field(`${p}_q${i}`, esc(q), {short:true})).join("")}
+    ${savedTag()}
+  </div>
+  <div class="card">
+    <h2 style="margin-top:0">Prayer</h2>
+    <div class="prayer">${esc(W.prayer)}</div>
+  </div>
+  <div class="card">
+    <div class="eyebrow">Practical action</div>
+    <h2 style="margin-top:.2em">${esc(W.action.title)}</h2>
+    ${actionHTML(m,w,W.action)}
+    ${savedTag()}
+  </div>
+  <div class="pager">
+    ${w>1?`<a class="btn" href="#/m/${m}/w/${w-1}">← Week ${w-1}</a>`:`<a class="btn" href="#/m/${m}">← ${M.name} overview</a>`}
+    <a class="btn" href="#/m/${m}/d/${a}">Go to Day ${a}</a>
+    ${w<4?`<a class="btn" href="#/m/${m}/w/${w+1}">Week ${w+1} →</a>`:`<a class="btn" href="#/m/${m}/r">Month reflection →</a>`}
+  </div></div>`;
+}
+
+function viewReflection(m){
+  const M = STUDY[m-1];
+  return `<div style="--mc:${M.color}">
+  <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Reflection</p>
+  <div class="eyebrow tag-m" style="margin-top:14px">${M.name} · Days 29–30</div>
+  <h1>Month ${m} reflection</h1>
+  <div class="days" style="max-width:120px">${[29,30].map(d=>`<a href="#/m/${m}/d/${d}" class="${isDone(m,d)?"d":""}">${d}</a>`).join("")}</div>
+  <div class="card">${M.reflection.map((q,i)=>field(`m${m}r_q${i}`, esc(q))).join("")}${savedTag()}</div>
+  <div class="pager"><a class="btn" href="#/m/${m}">← ${M.name} overview</a>
+    ${m<3?`<a class="btn primary" href="#/m/${m+1}">Begin Month ${m+1}: ${STUDY[m].name} →</a>`:`<a class="btn primary" href="#/closing">90-day closing reflection →</a>`}</div>
+  </div>`;
+}
+
+function viewClosing(){
+  return `
+  <p class="crumbs"><a href="#/">Home</a> / Closing reflection</p>
+  <h1 style="margin-top:14px">90-day closing reflection</h1>
+  <p class="muted">Use these questions to review the full journey. There is no requirement to have resolved every emotion or made a final decision about your marriage.</p>
+  <div class="card">${CLOSING.map((q,i)=>field(`closing_q${i}`, esc(q))).join("")}${savedTag()}</div>
+  <div class="card">
+    <h2 style="margin-top:0">Five anchor scriptures</h2>
+    <table class="anchors">${ANCHORS.map(a=>`<tr><td>${a[0]}</td><td class="serif"><a href="${bgLink(a[1])}" target="_blank" rel="noopener">${a[1]} ↗</a></td></tr>`).join("")}</table>
+  </div>
+  <div class="card soft">
+    <h2 style="margin-top:0">A final reminder</h2>
+    <p>You do not have to figure out the rest of your marriage before you begin taking care of yourself. You do not have to manufacture forgiveness, force trust, suppress anger, or pretend you are not hurt. Your responsibility during these 90 days is to seek God, examine yourself honestly, develop wisdom, establish healthy boundaries, and allow yourself to heal.</p>
+    <p>The goal is not simply to become a better husband or save a marriage. It is to become spiritually grounded and emotionally healthy, regardless of what happens in your marriage.</p>
+    <p class="serif" style="font-size:1.15rem;margin-bottom:0"><strong>Central reflection:</strong> Can I emerge from this experience without losing my relationship with God, my identity, my peace, or my sense of self?</p>
+  </div>
+  ${field("closing_central","My answer to the central reflection")}`;
+}
+
+/* Build a readable list of every written entry, in study order */
+function allEntries(){
+  const out = [];
+  const push = (key, where, href, q) => { const v=get(key); if(v) out.push({where, href, q, a:v}); };
+  STUDY.forEach(M=>{
+    const m=M.n;
+    for(let w=1; w<=5; w++){
+      const [a,b]=weekRange(w);
+      for(let d=a; d<=b; d++){ const [ref,p]=M.days[d-1]; const k=dayKey(m,d);
+        push(k+"_journal", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, p);
+        push(k+"_apply", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, "Personal application"); }
+      if(w<5){ const W=M.weeks[w-1];
+        W.questions.forEach((q,i)=>push(`m${m}w${w}_q${i}`, `${M.name} · Week ${w} discussion`, `#/m/${m}/w/${w}`, q));
+        const A=W.action; const flds = A.groups ? A.groups.flatMap(g=>g.fields.map(f=>[f[0], g.title+" — "+f[1]])) : A.fields;
+        flds.forEach(f=>push(`m${m}w${w}_a_${f[0]}`, `${M.name} · Week ${w} action: ${A.title}`, `#/m/${m}/w/${w}`, f[1]));
+      } else {
+        M.reflection.forEach((q,i)=>push(`m${m}r_q${i}`, `${M.name} · Month reflection`, `#/m/${m}/r`, q));
+      }
+    }
+  });
+  CLOSING.forEach((q,i)=>push(`closing_q${i}`, "90-day closing reflection", "#/closing", q));
+  push("closing_central","90-day closing reflection","#/closing","Central reflection");
+  return out;
+}
+
+function viewJournal(){
+  const list = allEntries();
+  const words = list.reduce((n,e)=>n+e.a.trim().split(/\s+/).length,0);
+  return `
+  <h1 style="margin-top:24px">My journal</h1>
+  <p class="muted">Everything you've written, in study order. ${list.length?`${list.length} entries · about ${words.toLocaleString()} words.`:""}</p>
+  ${list.length ? `<input type="text" class="search no-print" id="jsearch" placeholder="Search your entries…" aria-label="Search entries">
+  <div class="row no-print" style="margin:10px 0"><button class="btn" id="printJ">Print or save as PDF</button></div>
+  <div class="card" id="jlist">${list.map(e=>`<div class="entry" data-s="${esc((e.where+" "+e.q+" "+e.a).toLowerCase())}">
+    <div class="small"><a href="${e.href}">${esc(e.where)}</a></div>
+    <p class="q">${esc(e.q)}</p><p class="a">${esc(e.a)}</p></div>`).join("")}</div>`
+  : `<div class="card soft">Nothing written yet. Your reflections will appear here as you go. <a href="#/">Start the study</a>.</div>`}`;
+}
+
+function viewSettings(){
+  return `
+  <h1 style="margin-top:24px">Settings</h1>
+  <div class="card">
+    <h3 style="margin-top:0">Bible translation for reading links</h3>
+    <div class="row">${VERSIONS.map(v=>`<button class="btn ${S.settings.version===v?"primary":""}" data-ver="${v}">${v}</button>`).join("")}</div>
+    <p class="small muted">Scripture links open the passage on BibleGateway in this translation.</p>
+    <h3>Appearance</h3>
+    <div class="row">${[["auto","Match device"],["light","Light"],["dark","Dark"]].map(t=>`<button class="btn ${S.settings.theme===t[0]?"primary":""}" data-theme-set="${t[0]}">${t[1]}</button>`).join("")}</div>
+  </div>
+  <div class="card">
+    <h3 style="margin-top:0">Your privacy</h3>
+    <p>Everything you write stays in this browser on this device. Nothing is sent anywhere. That also means clearing your browser data, or switching devices, will lose it — so back it up now and then.</p>
+    ${storageOK?"":`<p style="color:#b4483c"><strong>This browser is blocking storage</strong> (for example, a private window). Your writing will be lost when you close the page unless you export it.</p>`}
+    <div class="row">
+      <button class="btn" id="exportBtn">Download backup</button>
+      <label class="btn" for="importFile">Restore from backup</label>
+      <input type="file" id="importFile" accept="application/json,.json" hidden>
+    </div>
+    <h3>Start over</h3>
+    <p class="small muted">Erases all journal entries and progress on this device.</p>
+    <button class="btn danger" id="resetBtn">Erase everything</button>
+  </div>
+  <div class="card soft small">
+    <strong>Getting support.</strong> This study is for personal reflection and is not a substitute for a pastor, counselor, or therapist. If you ever feel overwhelmed or unsafe, reach out to someone you trust — in the US you can call or text 988 any time.
+  </div>`;
+}
+
+/* ======================= ROUTER ======================= */
+function route(){
+  const h = location.hash.replace(/^#\/?/,"").split("/").filter(Boolean);
+  let html, nav="home";
+  const num = (x,max) => { const n = parseInt(x,10); return n>=1 && n<=max ? n : null; };
+  if(h[0]==="m" && num(h[1],3)){
+    const m = num(h[1],3); nav = "m"+m;
+    if(h[2]==="d" && num(h[3],30)) html = viewDay(m, num(h[3],30));
+    else if(h[2]==="w" && num(h[3],4)) html = viewWeek(m, num(h[3],4));
+    else if(h[2]==="r") html = viewReflection(m);
+    else html = viewMonth(m);
+  }
+  else if(h[0]==="closing"){ html = viewClosing(); nav=""; }
+  else if(h[0]==="journal"){ html = viewJournal(); nav="journal"; }
+  else if(h[0]==="settings"){ html = viewSettings(); nav="settings"; }
+  else html = viewHome();
+  const app = $("#app"); app.innerHTML = html;
+  document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on", a.dataset.k===nav));
+  window.scrollTo(0,0);
+  bind();
+}
+
+/* ======================= EVENTS ======================= */
+function bind(){
+  document.querySelectorAll("textarea[data-key]").forEach(t=>{
+    let timer;
+    const grow = () => { t.style.height="auto"; t.style.height = Math.max(t.scrollHeight+2, t.classList.contains("short")?64:110)+"px"; };
+    grow();
+    t.addEventListener("input", ()=>{
+      grow(); clearTimeout(timer);
+      timer = setTimeout(()=>{ set(t.dataset.key, t.value.trim() ? t.value : "");
+        const s = t.closest(".card")?.querySelector(".saved"); if(s){ s.classList.add("show"); clearTimeout(s._t); s._t=setTimeout(()=>s.classList.remove("show"),1200);} }, 350);
+    });
+    t.addEventListener("blur", ()=>{ clearTimeout(timer); set(t.dataset.key, t.value.trim() ? t.value : ""); });
+  });
+  document.querySelectorAll("[data-rt]").forEach(c=>c.addEventListener("change", ()=>{
+    const [m,d] = location.hash.match(/\d+/g).map(Number); const k=dayKey(m,d);
+    const r = S.routine[k] || []; r[+c.dataset.rt] = c.checked; S.routine[k]=r; save();
+    if(ROUTINE.every((_,i)=>r[i]) && !S.done[k]){ toast("Routine finished — tap “Mark day complete” when you're ready."); }
+  }));
+  const md = $("#markDone");
+  if(md) md.addEventListener("click", ()=>{
+    const [m,d] = location.hash.match(/\d+/g).map(Number); const k = dayKey(m,d);
+    if(S.done[k]){ delete S.done[k]; save(); route(); return; }
+    S.done[k] = new Date().toISOString(); save();
+    const left = 90-totalDone();
+    toast(left ? `Day ${d} complete. ${left} to go.` : "All 90 days complete. Well done.");
+    if(d===30) location.hash = `#/m/${m}/r`;
+    else route();
+  });
+  const ue = $("#useExample");
+  if(ue) ue.addEventListener("click", ()=>{
+    const t = document.querySelector('textarea[data-key$="_a_declaration"]');
+    if(t.value.trim() && !confirm("Replace what you've written with the example?")) return;
+    t.value = STUDY[1].weeks[3].action.example; t.dispatchEvent(new Event("input")); t.focus();
+  });
+  const js = $("#jsearch");
+  if(js) js.addEventListener("input", ()=>{ const q=js.value.toLowerCase().trim();
+    document.querySelectorAll("#jlist .entry").forEach(e=>e.hidden = q && !e.dataset.s.includes(q)); });
+  const pj = $("#printJ"); if(pj) pj.addEventListener("click", ()=>window.print());
+  document.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{ S.settings.version=b.dataset.ver; save(); route(); toast("Translation set to "+b.dataset.ver); }));
+  document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>{ S.settings.theme=b.dataset.themeSet; save(); applyTheme(); route(); }));
+  const ex = $("#exportBtn");
+  if(ex) ex.addEventListener("click", ()=>{
+    const blob = new Blob([JSON.stringify(S,null,2)],{type:"application/json"});
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `90-day-study-backup-${new Date().toISOString().slice(0,10)}.json`;
+    document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(a.href),1000);
+    toast("Backup downloaded");
+  });
+  const im = $("#importFile");
+  if(im) im.addEventListener("change", ()=>{
+    const f = im.files[0]; if(!f) return;
+    const rd = new FileReader();
+    rd.onload = () => { try{ const o = JSON.parse(rd.result); if(!o || typeof o.entries!=="object") throw 0;
+        if(!confirm("Replace everything on this device with this backup?")) return;
+        S = Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); save(); applyTheme(); toast("Backup restored"); route();
+      }catch(e){ toast("That file isn't a valid backup"); } };
+    rd.readAsText(f);
+  });
+  const rs = $("#resetBtn");
+  if(rs) rs.addEventListener("click", ()=>{
+    if(!confirm("Erase all your journal entries and progress on this device? This can't be undone.")) return;
+    if(!confirm("Are you sure? Consider downloading a backup first.")) return;
+    S = blank(); save(); applyTheme(); toast("Everything erased"); location.hash="#/";
+  });
+}
+
+applyTheme();
+window.addEventListener("hashchange", route);
+route();
+</script>
+</body>
+</html>
