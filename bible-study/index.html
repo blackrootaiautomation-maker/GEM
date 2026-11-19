@@ -353,7 +353,7 @@ const VERSIONS = ["NIV","ESV","KJV","NKJV","NLT","CSB","NASB"];
 /* ======================= STATE ======================= */
 const KEY = "ninetyDayStudy.v1";
 let S = load();
-function blank(){ return {v:1, entries:{}, et:{}, mt:0, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}}; }
+function blank(){ return {v:1, entries:{}, et:{}, prayers:{}, mt:0, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}}; }
 function load(){
   try{ const raw = localStorage.getItem(KEY); if(raw){ const o = JSON.parse(raw); return Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); } }catch(e){}
   return blank();
@@ -414,6 +414,9 @@ function mergeSnapshot(snap, first){
       if(d.id==="meta"){
         if((b.t||0) > (S.mt||0)){ S.done=b.done||{}; S.routine=b.routine||{}; S.settings=Object.assign(blank().settings, b.settings||{}); S.mt=b.t; changed=true; }
         else if((S.mt||0) > (b.t||0)) cloudPut("meta", metaBody());
+      } else if(d.id.startsWith("p_")){
+        const k = d.id.slice(2), cur = S.prayers[k];
+        if(!cur || cur.open!==b.open || cur.close!==b.close){ S.prayers[k] = {open:String(b.open||""), close:String(b.close||"")}; changed=true; }
       } else if(d.id.startsWith("e_")){
         const k = d.id.slice(2), lt = S.et[k]||0;
         if((b.t||0) > lt){ if(b.v) S.entries[k]=b.v; else delete S.entries[k]; S.et[k]=b.t; changed=true; }
@@ -579,10 +582,14 @@ function viewDay(m,d){
   <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Day ${d}</p>
   <div class="spread" style="margin-top:14px"><div class="eyebrow tag-m">${M.name} · Day ${d} of 30 · ${w<5?`Week ${w}: ${esc(M.weeks[w-1].title)}`:"Monthly assessment"}</div>
     ${done?'<span class="pill ok">Completed</span>':""}</div>
-  ${w<5?`<div class="card">
-    <div class="eyebrow">This week's prayer · start here</div>
-    <div class="prayer">${esc(M.weeks[w-1].prayer)}</div>
-  </div>`:""}
+  ${(()=>{ const P = S.prayers[k]; const wk = w<5 ? M.weeks[w-1].prayer : "";
+    if(P && P.open) return `<div class="card">
+      <div class="eyebrow">Opening prayer · start here</div>
+      <div class="prayer">${esc(P.open)}</div>
+      ${wk?`<details class="small" style="margin-top:8px"><summary class="muted" style="cursor:pointer">This week's prayer from the study</summary><div class="prayer">${esc(wk)}</div></details>`:""}
+    </div>`;
+    return wk ? `<div class="card"><div class="eyebrow">This week's prayer · start here</div><div class="prayer">${esc(wk)}</div></div>` : "";
+  })()}
   <div class="card">
     <div class="scripture"><div><div class="eyebrow">Today's scripture</div><div class="ref">${esc(ref)}</div></div>
       <a class="btn" href="${bgLink(ref)}" target="_blank" rel="noopener">Read ${esc(S.settings.version)} ↗</a></div>
@@ -598,6 +605,10 @@ function viewDay(m,d){
     ${field(k+"_apply","Personal application",{short:true,hint:"one way this scripture applies to my situation"})}
     ${savedTag()}
   </div>
+  ${S.prayers[k] && S.prayers[k].close ? `<div class="card">
+    <div class="eyebrow">Closing prayer</div>
+    <div class="prayer">${esc(S.prayers[k].close)}</div>
+  </div>`:""}
   <div class="card">
     <div class="eyebrow">Today's routine</div>
     <ul class="checks">${ROUTINE.map((x,i)=>`<li><input type="checkbox" id="rt${i}" data-rt="${i}" ${r[i]?"checked":""}><label for="rt${i}"><span class="t">${x[0]}</span> <span class="pill">${x[1]}</span><div class="small muted">${x[2]}</div></label></li>`).join("")}</ul>
