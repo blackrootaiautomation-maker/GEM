@@ -451,7 +451,7 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const dayKey = (m,d) => `m${m}d${d}`;
 const isDone = (m,d) => !!S.done[dayKey(m,d)];
-const hasWriting = (m,d) => !!(S.entries[dayKey(m,d)+"_journal"] || S.entries[dayKey(m,d)+"_apply"]);
+const hasWriting = (m,d) => ["_verse","_notes","_journal","_apply"].some(f=>S.entries[dayKey(m,d)+f]);
 const dayCls = (m,d) => isDone(m,d) ? "d" : (hasWriting(m,d) ? "p" : "");
 const weekOf = d => d>28 ? 5 : Math.ceil(d/7);
 const weekRange = w => w===5 ? [29,30] : [(w-1)*7+1, w*7];
@@ -583,6 +583,9 @@ function viewDay(m,d){
     <div class="scripture"><div><div class="eyebrow">Today's scripture</div><div class="ref">${esc(ref)}</div></div>
       <a class="btn" href="${bgLink(ref)}" target="_blank" rel="noopener">Read ${esc(S.settings.version)} ↗</a></div>
     <p class="small muted" style="margin:.8em 0 0">Read it twice. Focus on what the passage teaches.</p>
+    ${field(k+"_verse","Scripture, written out",{short:true,ph:"Write the passage out word for word."})}
+    ${field(k+"_notes","Study Bible notes",{hint:"what your study Bible says the passage means",ph:"Write out the explanation from your study Bible."})}
+    ${savedTag()}
   </div>
   <div class="card">
     <div class="eyebrow">Journal prompt</div>
@@ -697,6 +700,8 @@ function allEntries(){
     for(let w=1; w<=5; w++){
       const [a,b]=weekRange(w);
       for(let d=a; d<=b; d++){ const [ref,p]=M.days[d-1]; const k=dayKey(m,d);
+        push(k+"_verse", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, "Scripture, written out");
+        push(k+"_notes", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, "Study Bible notes");
         push(k+"_journal", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, p);
         push(k+"_apply", `${M.name} · Day ${d} · ${ref}`, `#/m/${m}/d/${d}`, "Personal application"); }
       if(w<5){ const W=M.weeks[w-1];
