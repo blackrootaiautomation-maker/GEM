@@ -85,6 +85,7 @@ textarea:focus,input:focus{outline:none;border-color:var(--focus);box-shadow:0 0
 .days a{display:flex;align-items:center;justify-content:center;aspect-ratio:1;border-radius:8px;border:1px solid var(--line);text-decoration:none;color:var(--muted);font-size:.9rem;font-variant-numeric:tabular-nums;background:var(--surface)}
 .days a:hover{border-color:var(--mc,var(--accent));color:var(--text)}
 .days a.d{background:var(--mc,var(--done));border-color:var(--mc,var(--done));color:var(--surface);font-weight:600}
+.days a.p{border:2px solid var(--mc,var(--accent));color:var(--text);font-weight:600}
 .days a.cur{outline:2px solid var(--mc,var(--accent));outline-offset:1px;color:var(--text)}
 .wk{border-left:4px solid var(--mc);}
 .daylist{list-style:none;padding:0;margin:8px 0}
@@ -395,8 +396,18 @@ async function cloudInit(){
     if(!db || !user) return;
     const uid = await user.id(); if(!uid) return;
     const col = db.collection("data/users/"+uid);
-    const snap = await Promise.race([col.limit(1000).get(), new Promise((_,r)=>setTimeout(()=>r({code:"timeout"}),10000))]);
-    cloud.col = col; cloud.status = "cloud";
+    cloud.col = col;
+    let first = true;
+    // Subscribe once: entries saved from another device (or added for you) show up live.
+    col.limit(1000).onSnapshot(snap=>{
+      cloud.status = "cloud";
+      mergeSnapshot(snap, first); first = false;
+    }, err=>{ if(err && (err.code==="revoked" || err.code==="not_granted" || err.code==="unavailable")){ cloud.col=null; cloud.status="local"; } });
+  }catch(e){ /* stay device-only for this visit */ }
+}
+let pendingRender = false;
+function mergeSnapshot(snap, first){
+  {
     let changed = false; const seen = new Set();
     snap.docs.forEach(d=>{
       const b = d.data(); if(!b) return; seen.add(d.id);
@@ -409,14 +420,20 @@ async function cloudInit(){
         else if(lt > (b.t||0)) cloudPut(d.id, {v:S.entries[k]||"", t:lt});
       }
     });
-    // Push anything written on this device that the account hasn't seen yet
-    Object.keys(S.entries).forEach(k=>{ if(!seen.has("e_"+k)){ S.et[k] = S.et[k] || Date.now(); cloudPut("e_"+k, {v:S.entries[k], t:S.et[k]}); }});
-    if(!seen.has("meta") && (Object.keys(S.done).length || Object.keys(S.routine).length)){ S.mt = S.mt || Date.now(); cloudPut("meta", metaBody()); }
+    if(first && !snap.metadata.fromCache){
+      // Push anything written on this device that the account hasn't seen yet
+      Object.keys(S.entries).forEach(k=>{ if(!seen.has("e_"+k)){ S.et[k] = S.et[k] || Date.now(); cloudPut("e_"+k, {v:S.entries[k], t:S.et[k]}); }});
+      if(!seen.has("meta") && (Object.keys(S.done).length || Object.keys(S.routine).length)){ S.mt = S.mt || Date.now(); cloudPut("meta", metaBody()); }
+    }
     save();
-    if(changed){ applyTheme(); if(!(document.activeElement && document.activeElement.tagName==="TEXTAREA")) route(); }
-    else if(location.hash.startsWith("#/settings")) route();
-  }catch(e){ /* stay device-only for this visit */ }
+    if(changed){ applyTheme(); }
+    if(changed || first){
+      if(document.activeElement && document.activeElement.tagName==="TEXTAREA") pendingRender = true;
+      else route(true);
+    }
+  }
 }
+document.addEventListener("focusout", e=>{ if(pendingRender && e.target.tagName==="TEXTAREA"){ pendingRender=false; setTimeout(()=>{ if(!(document.activeElement && document.activeElement.tagName==="TEXTAREA")) route(true); }, 400); } });
 async function cloudWipe(){
   if(!cloud.col) return;
   cloud.queue.clear();
@@ -434,6 +451,8 @@ const $ = s => document.querySelector(s);
 const esc = s => String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const dayKey = (m,d) => `m${m}d${d}`;
 const isDone = (m,d) => !!S.done[dayKey(m,d)];
+const hasWriting = (m,d) => !!(S.entries[dayKey(m,d)+"_journal"] || S.entries[dayKey(m,d)+"_apply"]);
+const dayCls = (m,d) => isDone(m,d) ? "d" : (hasWriting(m,d) ? "p" : "");
 const weekOf = d => d>28 ? 5 : Math.ceil(d/7);
 const weekRange = w => w===5 ? [29,30] : [(w-1)*7+1, w*7];
 function bgLink(ref){
@@ -506,8 +525,9 @@ function viewHome(){
     <div class="card"><div class="eyebrow">3</div><strong>Betrayal does not determine your worth.</strong><p class="small">Your wife's decisions are her responsibility; they are not a measurement of your value.</p><div class="small muted">Psalm 139:14 · Ephesians 2:10 · Romans 8:38–39</div></div>
   </div>
   <h2>Completion tracker</h2>
+  <p class="small muted">Filled = complete · outlined = started</p>
   ${STUDY.map(M=>`<div style="--mc:${M.color}"><div class="small"><strong class="tag-m">Month ${M.n} — ${M.name}</strong></div>
-    <div class="days">${M.days.map((_,i)=>`<a href="#/m/${M.n}/d/${i+1}" class="${isDone(M.n,i+1)?"d":""}" aria-label="${M.name} day ${i+1}${isDone(M.n,i+1)?", complete":""}">${i+1}</a>`).join("")}</div></div>`).join("")}
+    <div class="days">${M.days.map((_,i)=>`<a href="#/m/${M.n}/d/${i+1}" class="${dayCls(M.n,i+1)}" aria-label="${M.name} day ${i+1}${isDone(M.n,i+1)?", complete":hasWriting(M.n,i+1)?", started":""}">${i+1}</a>`).join("")}</div></div>`).join("")}
   <div class="row" style="margin-top:20px">
     <a class="btn" href="#/closing">90-day closing reflection</a>
     <a class="btn" href="#/journal">Read my journal</a>
@@ -612,7 +632,7 @@ function viewWeek(m,w){
   <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Week ${w}</p>
   <div class="eyebrow tag-m" style="margin-top:14px">${M.name} · Week ${w} · Days ${a}–${b}</div>
   <h1>${esc(W.title)}</h1>
-  <div class="days" style="max-width:420px">${Array.from({length:b-a+1},(_,i)=>a+i).map(d=>`<a href="#/m/${m}/d/${d}" class="${isDone(m,d)?"d":""}">${d}</a>`).join("")}</div>
+  <div class="days" style="max-width:420px">${Array.from({length:b-a+1},(_,i)=>a+i).map(d=>`<a href="#/m/${m}/d/${d}" class="${dayCls(m,d)}">${d}</a>`).join("")}</div>
   <div class="card">
     <h2 style="margin-top:0">Discussion questions</h2>
     <p class="small muted">Use these on your own, with a mentor, or with a trusted friend.</p>
@@ -642,7 +662,7 @@ function viewReflection(m){
   <p class="crumbs"><a href="#/">Home</a> / <a href="#/m/${m}">Month ${m}: ${M.name}</a> / Reflection</p>
   <div class="eyebrow tag-m" style="margin-top:14px">${M.name} · Days 29–30</div>
   <h1>Month ${m} reflection</h1>
-  <div class="days" style="max-width:120px">${[29,30].map(d=>`<a href="#/m/${m}/d/${d}" class="${isDone(m,d)?"d":""}">${d}</a>`).join("")}</div>
+  <div class="days" style="max-width:120px">${[29,30].map(d=>`<a href="#/m/${m}/d/${d}" class="${dayCls(m,d)}">${d}</a>`).join("")}</div>
   <div class="card">${M.reflection.map((q,i)=>field(`m${m}r_q${i}`, esc(q))).join("")}${savedTag()}</div>
   <div class="pager"><a class="btn" href="#/m/${m}">← ${M.name} overview</a>
     ${m<3?`<a class="btn primary" href="#/m/${m+1}">Begin Month ${m+1}: ${STUDY[m].name} →</a>`:`<a class="btn primary" href="#/closing">90-day closing reflection →</a>`}</div>
@@ -738,7 +758,7 @@ function viewSettings(){
 }
 
 /* ======================= ROUTER ======================= */
-function route(){
+function route(keepScroll){
   const h = location.hash.replace(/^#\/?/,"").split("/").filter(Boolean);
   let html, nav="home";
   const num = (x,max) => { const n = parseInt(x,10); return n>=1 && n<=max ? n : null; };
@@ -755,7 +775,7 @@ function route(){
   else html = viewHome();
   const app = $("#app"); app.innerHTML = html;
   document.querySelectorAll("#nav a").forEach(a=>a.classList.toggle("on", a.dataset.k===nav));
-  window.scrollTo(0,0);
+  if(keepScroll!==true) window.scrollTo(0,0);
   bind();
 }
 
