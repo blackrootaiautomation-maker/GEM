@@ -353,7 +353,7 @@ const VERSIONS = ["NIV","ESV","KJV","NKJV","NLT","CSB","NASB"];
 /* ======================= STATE ======================= */
 const KEY = "ninetyDayStudy.v1";
 let S = load();
-function blank(){ return {v:1, entries:{}, et:{}, prayers:{}, mt:0, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}}; }
+function blank(){ return {v:1, entries:{}, et:{}, prayers:{}, dt:{}, st:0, mt:0, done:{}, routine:{}, settings:{version:"NIV", theme:"auto"}}; }
 function load(){
   try{ const raw = localStorage.getItem(KEY); if(raw){ const o = JSON.parse(raw); return Object.assign(blank(), o, {settings:Object.assign(blank().settings, o.settings||{})}); } }catch(e){}
   return blank();
@@ -368,8 +368,11 @@ function set(k,v){
   if(v) S.entries[k]=v; else delete S.entries[k];
   S.et[k] = Date.now(); save(); cloudPut("e_"+k, {v:v||"", t:S.et[k]});
 }
-function touchMeta(){ S.mt = Date.now(); save(); cloudPut("meta", metaBody()); }
-function metaBody(){ return {done:S.done, routine:S.routine, settings:S.settings, t:S.mt}; }
+/* Progress saves one record per day, so a stale copy of the page can only ever touch the day it changed. */
+function dayBody(k){ return {done:S.done[k]||null, routine:S.routine[k]||[], t:S.dt[k]||0}; }
+function touchDay(k){ S.dt[k] = Date.now(); save(); cloudPut("d_"+k, dayBody(k)); }
+function settingsBody(){ return Object.assign({}, S.settings, {t:S.st||0}); }
+function touchSettings(){ S.st = Date.now(); save(); cloudPut("settings", settingsBody()); }
 
 /* ======================= PRIVATE CLOUD SYNC ======================= */
 /* Each viewer's entries live under data/users/<their id>/, which only they can read. */
@@ -408,12 +411,18 @@ async function cloudInit(){
 let pendingRender = false;
 function mergeSnapshot(snap, first){
   {
-    let changed = false; const seen = new Set();
+    let changed = false, legacy = null; const seen = new Set();
     snap.docs.forEach(d=>{
       const b = d.data(); if(!b) return; seen.add(d.id);
       if(d.id==="meta"){
-        if((b.t||0) > (S.mt||0)){ S.done=b.done||{}; S.routine=b.routine||{}; S.settings=Object.assign(blank().settings, b.settings||{}); S.mt=b.t; changed=true; }
-        else if((S.mt||0) > (b.t||0)) cloudPut("meta", metaBody());
+        legacy = b;   // older versions kept all progress in one record; used only to fill days with no record of their own
+      } else if(d.id==="settings"){
+        if((b.t||0) > (S.st||0)){ const {t, ...rest} = b; S.settings=Object.assign(blank().settings, rest); S.st=t; changed=true; }
+        else if((S.st||0) > (b.t||0)) cloudPut("settings", settingsBody());
+      } else if(d.id.startsWith("d_")){
+        const k = d.id.slice(2), lt = S.dt[k]||0;
+        if((b.t||0) > lt){ if(b.done) S.done[k]=b.done; else delete S.done[k]; S.routine[k]=Array.isArray(b.routine)?b.routine:[]; S.dt[k]=b.t; changed=true; }
+        else if(lt > (b.t||0)) cloudPut(d.id, dayBody(k));
       } else if(d.id.startsWith("p_")){
         const k = d.id.slice(2), cur = S.prayers[k];
         if(!cur || cur.open!==b.open || cur.close!==b.close){ S.prayers[k] = {open:String(b.open||""), close:String(b.close||"")}; changed=true; }
@@ -426,7 +435,17 @@ function mergeSnapshot(snap, first){
     if(first && !snap.metadata.fromCache){
       // Push anything written on this device that the account hasn't seen yet
       Object.keys(S.entries).forEach(k=>{ if(!seen.has("e_"+k)){ S.et[k] = S.et[k] || Date.now(); cloudPut("e_"+k, {v:S.entries[k], t:S.et[k]}); }});
-      if(!seen.has("meta") && (Object.keys(S.done).length || Object.keys(S.routine).length)){ S.mt = S.mt || Date.now(); cloudPut("meta", metaBody()); }
+    }
+    if(legacy){
+      // Carry over progress from the old single record for any day that has no record of its own yet
+      for(const [k,v] of Object.entries(legacy.done||{})) if(!seen.has("d_"+k) && !S.dt[k] && !S.done[k]){ S.done[k]=v; changed=true; }
+      for(const [k,v] of Object.entries(legacy.routine||{})) if(!seen.has("d_"+k) && !S.dt[k] && !S.routine[k] && Array.isArray(v)){ S.routine[k]=v; changed=true; }
+      if(!seen.has("settings") && !S.st && legacy.settings){ S.settings=Object.assign(blank().settings, legacy.settings); changed=true; }
+    }
+    if(first && !snap.metadata.fromCache){
+      const days = new Set([...Object.keys(S.done), ...Object.keys(S.routine)]);
+      days.forEach(k=>{ if(!seen.has("d_"+k)){ S.dt[k] = S.dt[k] || Date.now(); cloudPut("d_"+k, dayBody(k)); } });
+      if(!seen.has("settings")){ S.st = S.st || Date.now(); cloudPut("settings", settingsBody()); }
     }
     save();
     if(changed){ applyTheme(); }
@@ -440,13 +459,14 @@ document.addEventListener("focusout", e=>{ if(pendingRender && e.target.tagName=
 async function cloudWipe(){
   if(!cloud.col) return;
   cloud.queue.clear();
-  try{ const snap = await cloud.col.limit(1000).get(); for(const d of snap.docs){ try{ await cloud.col.doc(d.id).delete(); }catch(e){} } }catch(e){}
+  try{ const snap = await cloud.col.limit(1000).get(); for(const d of snap.docs){ if(d.id.startsWith("p_")) continue; try{ await cloud.col.doc(d.id).delete(); }catch(e){} } }catch(e){}
 }
 function cloudPushAll(){
   if(!cloud.col) return;
   const now = Date.now();
   Object.keys(S.entries).forEach(k=>{ S.et[k]=now; cloudPut("e_"+k, {v:S.entries[k], t:now}); });
-  S.mt = now; cloudPut("meta", metaBody()); save();
+  new Set([...Object.keys(S.done), ...Object.keys(S.routine)]).forEach(k=>{ S.dt[k]=now; cloudPut("d_"+k, dayBody(k)); });
+  S.st = now; cloudPut("settings", settingsBody()); save();
 }
 
 /* ======================= HELPERS ======================= */
@@ -814,14 +834,14 @@ function bind(){
   });
   document.querySelectorAll("[data-rt]").forEach(c=>c.addEventListener("change", ()=>{
     const [m,d] = location.hash.match(/\d+/g).map(Number); const k=dayKey(m,d);
-    const r = S.routine[k] || []; r[+c.dataset.rt] = c.checked; S.routine[k]=r; touchMeta();
+    const r = S.routine[k] || []; r[+c.dataset.rt] = c.checked; S.routine[k]=r; touchDay(k);
     if(ROUTINE.every((_,i)=>r[i]) && !S.done[k]){ toast("Routine finished — tap “Mark day complete” when you're ready."); }
   }));
   const md = $("#markDone");
   if(md) md.addEventListener("click", ()=>{
     const [m,d] = location.hash.match(/\d+/g).map(Number); const k = dayKey(m,d);
-    if(S.done[k]){ delete S.done[k]; touchMeta(); route(); return; }
-    S.done[k] = new Date().toISOString(); touchMeta();
+    if(S.done[k]){ if(!confirm("Mark Day "+d+" as not complete?")) return; delete S.done[k]; touchDay(k); route(true); return; }
+    S.done[k] = new Date().toISOString(); touchDay(k);
     const left = 90-totalDone();
     toast(left ? `Day ${d} complete. ${left} to go.` : "All 90 days complete. Well done.");
     if(d===30) location.hash = `#/m/${m}/r`;
@@ -837,8 +857,8 @@ function bind(){
   if(js) js.addEventListener("input", ()=>{ const q=js.value.toLowerCase().trim();
     document.querySelectorAll("#jlist .entry").forEach(e=>e.hidden = q && !e.dataset.s.includes(q)); });
   const pj = $("#printJ"); if(pj) pj.addEventListener("click", ()=>window.print());
-  document.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{ S.settings.version=b.dataset.ver; touchMeta(); route(); toast("Translation set to "+b.dataset.ver); }));
-  document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>{ S.settings.theme=b.dataset.themeSet; touchMeta(); applyTheme(); route(); }));
+  document.querySelectorAll("[data-ver]").forEach(b=>b.addEventListener("click",()=>{ S.settings.version=b.dataset.ver; touchSettings(); route(); toast("Translation set to "+b.dataset.ver); }));
+  document.querySelectorAll("[data-theme-set]").forEach(b=>b.addEventListener("click",()=>{ S.settings.theme=b.dataset.themeSet; touchSettings(); applyTheme(); route(); }));
   const ex = $("#exportBtn");
   if(ex) ex.addEventListener("click", async ()=>{
     const filename = `90-day-study-backup-${new Date().toISOString().slice(0,10)}.json`;
@@ -867,7 +887,7 @@ function bind(){
   if(rs) rs.addEventListener("click", async ()=>{
     if(!confirm("Erase all your journal entries and progress? This can't be undone.")) return;
     if(!confirm("Are you sure? Consider downloading a backup first.")) return;
-    S = blank(); save(); await cloudWipe(); applyTheme(); toast("Everything erased"); location.hash="#/";
+    const keep = S.prayers; S = blank(); S.prayers = keep; save(); await cloudWipe(); applyTheme(); toast("Everything erased"); location.hash="#/";
   });
 }
 
